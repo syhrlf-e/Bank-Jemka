@@ -1,7 +1,7 @@
 <div align="center">
   <img src="public/logo-nama.png" alt="Bank Jemka Logo" width="250" />
   
-  # Bank Jemka
+  <br />
   
   **Sistem Informasi Perbankan Modern Berbasis Web**
 
