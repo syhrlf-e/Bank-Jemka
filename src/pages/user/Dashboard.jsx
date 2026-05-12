@@ -10,6 +10,7 @@ import { toast } from "sonner";
 export default function Dashboard() {
   const [showBalance, setShowBalance] = useState(true);
   const [profile, setProfile] = useState(null);
+  const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
@@ -17,9 +18,10 @@ export default function Dashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [profileRes, txRes] = await Promise.all([
+        const [profileRes, txRes, accountRes] = await Promise.all([
           fetchApi("/api/profile"),
-          fetchApi("/api/transaction").catch(() => ({ data: { data: [] } })) // ignore tx error for now
+          fetchApi("/api/transaction").catch(() => ({ data: { data: [] } })), // ignore tx error for now
+          fetchApi("/api/account").catch(() => ({ data: { data: {} } }))
         ]);
 
         console.log("Profile Response:", profileRes);
@@ -31,6 +33,12 @@ export default function Dashboard() {
           toast.error(`Sesi tidak valid atau API error (${profileRes.response.status}). Redirecting...`);
           setTimeout(() => navigate("/login"), 3000);
           return;
+        }
+
+        if (accountRes.data && accountRes.data.data) {
+          const accData = accountRes.data.data;
+          const currentBalance = accData.balance ?? accData.saldo ?? accData.amount ?? 0;
+          setBalance(Number(currentBalance));
         }
 
         if (txRes.data && txRes.data.data) {
@@ -58,6 +66,7 @@ export default function Dashboard() {
   }
 
   const firstName = profile?.nama ? profile.nama.split(" ")[0] : "User";
+  const formattedBalance = balance.toLocaleString("id-ID");
 
   return (
     <UserSidebar>
@@ -82,7 +91,7 @@ export default function Dashboard() {
               <p className="text-xs font-medium text-primary-100 mb-1">Total Saldo</p>
               <div className="flex items-center gap-3">
                 <h2 className="text-3xl font-sans font-bold tracking-tight">
-                  {showBalance ? "Rp 5.000.000" : "Rp ••••••••"}
+                  {showBalance ? `Rp ${formattedBalance}` : "Rp ••••••••"}
                 </h2>
                 <button onClick={() => setShowBalance(!showBalance)} className="text-primary-100 hover:text-white transition-colors">
                   {showBalance ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

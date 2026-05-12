@@ -21,7 +21,7 @@ export default function AdminSidebar({ children }) {
 
   return (
     <div className="flex min-h-screen bg-neutral-50">
-      <aside className="w-60 bg-neutral-900 border-r border-neutral-800 flex flex-col hidden lg:flex fixed inset-y-0 left-0 text-white">
+      <aside className="w-60 bg-primary-900 border-r border-primary-800 flex flex-col hidden lg:flex fixed inset-y-0 left-0 text-white">
         <div className="p-6 flex items-center justify-center">
           <img src="/logo-nama.png" alt="Bank Jemka Logo" className="h-10 object-contain brightness-0 invert" />
         </div>
@@ -37,7 +37,7 @@ export default function AdminSidebar({ children }) {
                   "flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary-600 text-white"
-                    : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
+                    : "text-primary-200 hover:bg-primary-800 hover:text-white"
                 )
               }
             >
@@ -47,17 +47,17 @@ export default function AdminSidebar({ children }) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-neutral-800">
+        <div className="p-4 border-t border-primary-800">
           <div className="flex items-center gap-3 mb-4 px-2">
-            <div className="w-10 h-10 rounded-full bg-neutral-800 text-neutral-300 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-full bg-primary-800 text-primary-200 flex items-center justify-center font-bold">
               AD
             </div>
             <div className="overflow-hidden">
               <p className="text-body-md font-bold text-white truncate">Administrator</p>
-              <p className="text-body-sm font-sans text-neutral-400">admin@jemka.com</p>
+              <p className="text-body-sm font-sans text-primary-300">admin@jemka.com</p>
             </div>
           </div>
-          <Button variant="ghost" className="w-full justify-start text-danger hover:text-danger hover:bg-neutral-800" onClick={handleLogout}>
+          <Button variant="ghost" className="w-full justify-start bg-danger text-white hover:bg-danger/90 hover:text-white" onClick={handleLogout}>
             <LogOut className="w-5 h-5 mr-2" />
             Logout
           </Button>

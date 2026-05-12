@@ -19,7 +19,7 @@ export default function UserSidebar({ children }) {
       </main>
 
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-105 px-4">
-        <nav className="bg-white/90 backdrop-blur-md shadow-xl border border-neutral-200 rounded-3xl px-6 py-3 flex items-center justify-between">
+        <nav className="bg-white/90 backdrop-blur-md shadow-xl border border-neutral-200 rounded-full px-6 py-3 flex items-center justify-between">
           {navLinks.map((link) => (
             <NavLink
               key={link.to}
