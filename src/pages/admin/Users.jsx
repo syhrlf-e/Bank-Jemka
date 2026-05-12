@@ -153,9 +153,9 @@ export default function Users() {
   };
 
   const filteredUsers = users.filter((user) =>
-    (user.nama || "").toLowerCase().includes(search.toLowerCase()) ||
-    (user.nik || "").includes(search) ||
-    (user.email || "").toLowerCase().includes(search.toLowerCase())
+    String(user.nama || "").toLowerCase().includes(search.toLowerCase()) ||
+    String(user.nik || "").includes(search) ||
+    String(user.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
