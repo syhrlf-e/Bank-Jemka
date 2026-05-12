@@ -32,7 +32,7 @@ export default function Users() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     nama: "",
     nik: "",
@@ -40,6 +40,8 @@ export default function Users() {
     no_telepon: "",
     username: "",
     password: "",
+    status_kyc: "pending",
+    status_user: "active",
   });
 
   useEffect(() => {
@@ -65,7 +67,7 @@ export default function Users() {
   const handleOpenAdd = () => {
     setIsEditing(false);
     setSelectedUser(null);
-    setFormData({ nama: "", nik: "", email: "", no_telepon: "", username: "", password: "" });
+    setFormData({ nama: "", nik: "", email: "", no_telepon: "", username: "", password: "", status_kyc: "pending", status_user: "active" });
     setShowModal(true);
   };
 
@@ -77,8 +79,10 @@ export default function Users() {
       nik: user.nik || "",
       email: user.email || "",
       no_telepon: user.no_telepon || "",
-      username: "", // Usually don't edit username/password here unless requested
+      username: "",
       password: "",
+      status_kyc: user.status_kyc || "pending",
+      status_user: user.status_user || "active",
     });
     setShowModal(true);
   };
@@ -91,20 +95,18 @@ export default function Users() {
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
-      // Menyiapkan payload, jika email diisi tapi tanpa @gmail.com, kita tambahkan otomatis (berdasarkan UI)
       const payload = { ...formData };
       if (payload.email && !payload.email.includes("@")) {
         payload.email = `${payload.email}@gmail.com`;
       }
 
-      let endpoint = "/api/auth/register"; // Asumsi endpoint tambah nasabah mirip dengan register
+      let endpoint = "/api/auth/register";
       let method = "POST";
 
       if (isEditing) {
-        // Asumsi endpoint update profile berdasarkan ID nasabah
-        // GANTI INI JIKA ENDPOINT-NYA BERBEDA
-        endpoint = `/api/profile/${selectedUser.id_account}`; 
-        method = "PUT";
+        endpoint = "/api/account/update";
+        method = "POST";
+        payload.id = Number(selectedUser.id);
         // Hapus password jika kosong saat edit
         if (!payload.password) delete payload.password;
         if (!payload.username) delete payload.username;
@@ -132,13 +134,13 @@ export default function Users() {
   const handleDelete = async () => {
     setIsSubmitting(true);
     try {
-      const { response, data } = await fetchApi(`/api/profile/delete`, {
+      const { response, data } = await fetchApi(`/api/account/delete`, {
         method: "POST",
-        body: JSON.stringify({ id: selectedUser.id })
+        body: JSON.stringify({ id: Number(selectedUser.id) })
       });
 
       if (response.ok) {
-        toast.success("Nasabah berhasil dihapus!");
+        toast.success(data.message || "Berhasil menghapus data nasabah");
         setShowDeleteModal(false);
         fetchUsers(); // Refresh data
       } else {
@@ -247,7 +249,57 @@ export default function Users() {
             <DialogTitle>{isEditing ? "Edit Data Nasabah" : "Tambah Nasabah Baru"}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            {isEditing ? (
+            <div className="space-y-2">
+              <Label>Nama Lengkap</Label>
+              <Input
+                value={formData.nama}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^a-zA-Z\s']/g, "");
+                  setFormData({ ...formData, nama: val });
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>NIK</Label>
+              <Input
+                type="text"
+                value={formData.nik}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 16);
+                  setFormData({ ...formData, nik: val });
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <div className="relative flex items-center">
+                <Input
+                  type="text"
+                  value={formData.email.replace("@gmail.com", "")}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^a-zA-Z0-9._-]/g, "");
+                    setFormData({ ...formData, email: val });
+                  }}
+                  className="pr-22.5"
+                  placeholder="username"
+                />
+                <span className="absolute right-3 text-neutral-500 text-sm pointer-events-none">
+                  @gmail.com
+                </span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>No. Telepon</Label>
+              <Input
+                type="tel"
+                value={formData.no_telepon}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, "").slice(0, 13);
+                  setFormData({ ...formData, no_telepon: val });
+                }}
+              />
+            </div>
+            {isEditing && (
               <>
                 <div className="space-y-2">
                   <Label>Status KYC</Label>
@@ -272,69 +324,20 @@ export default function Users() {
                   </select>
                 </div>
               </>
-            ) : (
+            )}
+            {!isEditing && (
               <>
                 <div className="space-y-2">
-                  <Label>Nama Lengkap</Label>
-                  <Input
-                    value={formData.nama}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^a-zA-Z\s']/g, "");
-                      setFormData({ ...formData, nama: val });
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>NIK</Label>
-                  <Input
-                    type="text"
-                    value={formData.nik}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 16);
-                      setFormData({ ...formData, nik: val });
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <div className="relative flex items-center">
-                    <Input
-                      type="text"
-                      value={formData.email.replace("@gmail.com", "")}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^a-zA-Z0-9._-]/g, "");
-                        setFormData({ ...formData, email: val });
-                      }}
-                      className="pr-22.5"
-                      placeholder="username"
-                    />
-                    <span className="absolute right-3 text-neutral-500 text-sm pointer-events-none">
-                      @gmail.com
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>No. Telepon</Label>
-                  <Input
-                    type="tel"
-                    value={formData.no_telepon}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 13);
-                      setFormData({ ...formData, no_telepon: val });
-                    }}
-                  />
-                </div>
-                <div className="space-y-2">
                   <Label>Username</Label>
-                  <Input 
+                  <Input
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>Password</Label>
-                  <Input 
-                    type="password" 
+                  <Input
+                    type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />
