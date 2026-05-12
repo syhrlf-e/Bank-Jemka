@@ -14,6 +14,7 @@ export default function UserLogin() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const validate = () => {
     const newErrors = {};

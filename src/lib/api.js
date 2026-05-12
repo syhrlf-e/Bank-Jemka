@@ -1,4 +1,4 @@
-export const API_BASE_URL = "https://0275-103-136-59-134.ngrok-free.app";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || "https://0275-103-136-59-134.ngrok-free.app";
 
 export const fetchApi = async (endpoint, options = {}) => {
   const defaultOptions = {
