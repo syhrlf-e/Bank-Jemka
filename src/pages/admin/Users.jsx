@@ -132,10 +132,9 @@ export default function Users() {
   const handleDelete = async () => {
     setIsSubmitting(true);
     try {
-      // Asumsi endpoint delete profile berdasarkan ID nasabah
-      // GANTI INI JIKA ENDPOINT-NYA BERBEDA
-      const { response, data } = await fetchApi(`/api/profile/${selectedUser.id_account}`, {
-        method: "DELETE",
+      const { response, data } = await fetchApi(`/api/profile/delete`, {
+        method: "POST",
+        body: JSON.stringify({ id: selectedUser.id })
       });
 
       if (response.ok) {
@@ -207,7 +206,7 @@ export default function Users() {
               </TableRow>
             ) : (
               filteredUsers.map((user, idx) => (
-                <TableRow key={user.id_account || idx}>
+                <TableRow key={user.id || idx}>
                   <TableCell>{idx + 1}</TableCell>
                   <TableCell className="font-medium text-neutral-900">{user.nama}</TableCell>
                   <TableCell className="font-sans text-neutral-600">{user.nik}</TableCell>
@@ -248,58 +247,83 @@ export default function Users() {
             <DialogTitle>{isEditing ? "Edit Data Nasabah" : "Tambah Nasabah Baru"}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            <div className="space-y-2">
-              <Label>Nama Lengkap</Label>
-              <Input
-                value={formData.nama}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/[^a-zA-Z\s']/g, "");
-                  setFormData({ ...formData, nama: val });
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>NIK</Label>
-              <Input
-                type="text"
-                value={formData.nik}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, "").slice(0, 16);
-                  setFormData({ ...formData, nik: val });
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <div className="relative flex items-center">
-                <Input
-                  type="text"
-                  value={formData.email.replace("@gmail.com", "")}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^a-zA-Z0-9._-]/g, "");
-                    setFormData({ ...formData, email: val });
-                  }}
-                  className="pr-22.5"
-                  placeholder="username"
-                />
-                <span className="absolute right-3 text-neutral-500 text-sm pointer-events-none">
-                  @gmail.com
-                </span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>No. Telepon</Label>
-              <Input
-                type="tel"
-                value={formData.no_telepon}
-                onChange={(e) => {
-                  const val = e.target.value.replace(/\D/g, "").slice(0, 13);
-                  setFormData({ ...formData, no_telepon: val });
-                }}
-              />
-            </div>
-            {!isEditing && (
+            {isEditing ? (
               <>
+                <div className="space-y-2">
+                  <Label>Status KYC</Label>
+                  <select
+                    value={formData.status_kyc}
+                    onChange={(e) => setFormData({ ...formData, status_kyc: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="verified">Verified</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Status Akun</Label>
+                  <select
+                    value={formData.status_user}
+                    onChange={(e) => setFormData({ ...formData, status_user: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label>Nama Lengkap</Label>
+                  <Input
+                    value={formData.nama}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^a-zA-Z\s']/g, "");
+                      setFormData({ ...formData, nama: val });
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>NIK</Label>
+                  <Input
+                    type="text"
+                    value={formData.nik}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 16);
+                      setFormData({ ...formData, nik: val });
+                    }}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <div className="relative flex items-center">
+                    <Input
+                      type="text"
+                      value={formData.email.replace("@gmail.com", "")}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^a-zA-Z0-9._-]/g, "");
+                        setFormData({ ...formData, email: val });
+                      }}
+                      className="pr-22.5"
+                      placeholder="username"
+                    />
+                    <span className="absolute right-3 text-neutral-500 text-sm pointer-events-none">
+                      @gmail.com
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>No. Telepon</Label>
+                  <Input
+                    type="tel"
+                    value={formData.no_telepon}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 13);
+                      setFormData({ ...formData, no_telepon: val });
+                    }}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label>Username</Label>
                   <Input 
