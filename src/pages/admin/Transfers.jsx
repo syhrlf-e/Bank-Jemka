@@ -93,12 +93,14 @@ export default function Transfers() {
                 <TableRow key={tf.id || idx}>
                   <TableCell>{idx + 1}</TableCell>
                   <TableCell>
-                    <p className="font-medium text-neutral-900">{tf.from_name || tf.source_name || tf.sender_name || tf.pengirim_nama || tf.source?.nama || "-"}</p>
-                    <p className="text-xs font-sans text-neutral-500">{tf.from_acc || tf.source_account_number || tf.source_account || tf.sender_account || tf.rekening_sumber || (typeof tf.source === 'string' ? tf.source : tf.source?.account_number) || "-"}</p>
+                    <p className="font-medium text-neutral-900">
+                      {typeof tf.source === 'object' ? (tf.source?.nama || tf.source?.account_number || "-") : (tf.source || tf.from_name || "-")}
+                    </p>
                   </TableCell>
                   <TableCell>
-                    <p className="font-medium text-neutral-900">{tf.to_name || tf.destination_name || tf.receiver_name || tf.penerima_nama || tf.destination?.nama || "-"}</p>
-                    <p className="text-xs font-sans text-neutral-500">{tf.to_acc || tf.destination_account_number || tf.destination_account || tf.receiver_account || tf.rekening_tujuan || (typeof tf.destination === 'string' ? tf.destination : tf.destination?.account_number) || "-"}</p>
+                    <p className="font-medium text-neutral-900">
+                      {typeof tf.destination === 'object' ? (tf.destination?.nama || tf.destination?.account_number || "-") : (tf.destination || tf.to_name || "-")}
+                    </p>
                   </TableCell>
                   <TableCell className="text-right font-sans text-neutral-600">
                     Rp {Number(tf.amount || 0).toLocaleString("id-ID")}
