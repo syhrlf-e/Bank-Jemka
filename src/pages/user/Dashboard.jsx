@@ -1,23 +1,68 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Send, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import UserSidebar from "@/components/layout/UserSidebar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const TRANSACTIONS = [
-  { id: 1, type: "in", name: "Transfer dari Rehan Tohapok", date: "10 Mei 2026, 14:30", amount: 500000 },
-  { id: 2, type: "out", name: "Transfer ke Ujang Wonogiri", date: "09 Mei 2026, 09:15", amount: 150000 },
-  { id: 3, type: "in", name: "Setoran Awal", date: "01 Mei 2026, 10:00", amount: 5000000 },
-];
+import { fetchApi } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const [showBalance, setShowBalance] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [profileRes, txRes] = await Promise.all([
+          fetchApi("/api/profile"),
+          fetchApi("/api/transaction").catch(() => ({ data: { data: [] } })) // ignore tx error for now
+        ]);
+
+        console.log("Profile Response:", profileRes);
+
+        if (profileRes.data && profileRes.data.data) {
+          setProfile(profileRes.data.data);
+        } else {
+          console.warn("No profile data found, redirecting to login. Response:", profileRes.data);
+          toast.error(`Sesi tidak valid atau API error (${profileRes.response.status}). Redirecting...`);
+          setTimeout(() => navigate("/login"), 3000);
+          return;
+        }
+
+        if (txRes.data && txRes.data.data) {
+          setTransactions(txRes.data.data);
+        }
+      } catch (error) {
+        console.error("Dashboard Load Error:", error);
+        toast.error("Gagal memuat data dari server");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [navigate]);
+
+  if (isLoading) {
+    return (
+      <UserSidebar>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <p className="text-neutral-500">Memuat data dashboard...</p>
+        </div>
+      </UserSidebar>
+    );
+  }
+
+  const firstName = profile?.nama ? profile.nama.split(" ")[0] : "User";
 
   return (
     <UserSidebar>
       <div className="mb-6">
-        <h1 className="text-heading-md font-bold text-neutral-900">Halo, Rusdi! 👋</h1>
+        <h1 className="text-heading-md font-bold text-neutral-900">Halo, {firstName}! 👋</h1>
         <p className="text-body-sm text-neutral-500">
           {new Intl.DateTimeFormat("id-ID", { dateStyle: "full" }).format(new Date())}
         </p>
@@ -31,7 +76,7 @@ export default function Dashboard() {
               <span className="px-3 py-1 bg-white/20 rounded-full text-xs backdrop-blur-sm font-medium">
                 Tabungan
               </span>
-              <p className="text-sm font-sans text-primary-100">69-222-896</p>
+              <p className="text-sm font-sans text-primary-100">{profile?.account_number || "69-000-000"}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-primary-100 mb-1">Total Saldo</p>
@@ -71,22 +116,31 @@ export default function Dashboard() {
           </Link>
         </div>
         <div className="divide-y divide-neutral-50">
-          {TRANSACTIONS.slice(0, 3).map((tx) => (
-            <div key={tx.id} className="p-5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0", tx.type === "in" ? "bg-success/10 text-success" : "bg-danger/10 text-danger")}>
-                  {tx.type === "in" ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+          {transactions.length > 0 ? transactions.slice(0, 3).map((tx) => {
+            const isDebit = tx.transaction_type === "debit";
+            const amountStr = String(tx.amount);
+            const amountNum = Number(amountStr);
+            const formattedAmount = amountNum >= 1000000 ? (amountNum/1000000).toFixed(1) + "M" : (amountNum >= 1000 ? (amountNum/1000) + "k" : amountNum);
+            
+            return (
+              <div key={tx.id} className="p-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-10 h-10 rounded-full flex items-center justify-center shrink-0", !isDebit ? "bg-success/10 text-success" : "bg-danger/10 text-danger")}>
+                    {!isDebit ? <ArrowDownLeft className="w-5 h-5" /> : <ArrowUpRight className="w-5 h-5" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-neutral-900 line-clamp-1">{tx.description || "Transaksi"}</p>
+                    <p className="text-xs text-neutral-500 mt-0.5">{new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeStyle: "short" }).format(new Date(tx.created_at))}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-neutral-900 line-clamp-1">{tx.name}</p>
-                  <p className="text-xs text-neutral-500 mt-0.5">{tx.date}</p>
+                <div className={cn("font-sans font-bold text-sm shrink-0", !isDebit ? "text-success" : "text-neutral-900")}>
+                  {!isDebit ? "+" : "-"}Rp{formattedAmount}
                 </div>
               </div>
-              <div className={cn("font-sans font-bold text-sm shrink-0", tx.type === "in" ? "text-success" : "text-neutral-900")}>
-                {tx.type === "in" ? "+" : "-"}Rp{tx.amount >= 1000000 ? (tx.amount/1000000).toFixed(1) + "M" : (tx.amount/1000) + "k"}
-              </div>
-            </div>
-          ))}
+            );
+          }) : (
+            <div className="p-5 text-center text-sm text-neutral-500">Belum ada transaksi.</div>
+          )}
         </div>
       </div>
     </UserSidebar>

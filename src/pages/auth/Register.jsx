@@ -67,19 +67,41 @@ export default function Register() {
     if (validateStep1()) setStep(2);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep2()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const payload = {
+        nama: formData.fullName,
+        nik: formData.nik,
+        tempat_lahir: formData.birthPlace,
+        tanggal_lahir: formData.birthDate,
+        email: formData.email,
+        no_telepon: formData.phone,
+        username: formData.username,
+        password: formData.password,
+      };
+
+      const { response, data } = await fetchApi("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok && data.success) {
+        setIsSuccess(true);
+        // If the backend returns an account number, use it, otherwise generate one for display
+        setGeneratedAccount(data.data?.account_number || data.account_number || `69-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}`);
+        toast.success("Rekening berhasil dibuat!");
+      } else {
+        toast.error(data.message || "Gagal membuat rekening.");
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan jaringan, silakan coba lagi.");
+    } finally {
       setIsLoading(false);
-      setIsSuccess(true);
-      const rand1 = Math.floor(Math.random() * 900) + 100;
-      const rand2 = Math.floor(Math.random() * 900) + 100;
-      setGeneratedAccount(`69-${rand1}-${rand2}`);
-      toast.success("Rekening berhasil dibuat!");
-    }, 1500);
+    }
   };
 
   if (isSuccess) {

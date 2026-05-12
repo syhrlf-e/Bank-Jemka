@@ -1,14 +1,55 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Mail, Phone, MapPin, LogOut } from "lucide-react";
 import UserSidebar from "@/components/layout/UserSidebar";
 import { Button } from "@/components/ui/button";
+import { fetchApi } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function UserProfile() {
+  const [profile, setProfile] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    navigate("/login");
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { data } = await fetchApi("/api/profile");
+        if (data && data.data) {
+          setProfile(data.data);
+        } else {
+          navigate("/login");
+        }
+      } catch (error) {
+        toast.error("Gagal memuat profil");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProfile();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await fetchApi("/api/auth/logout", { method: "POST" });
+      toast.success("Berhasil keluar akun");
+      navigate("/login");
+    } catch (error) {
+      toast.error("Gagal keluar akun");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <UserSidebar>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <p className="text-neutral-500">Memuat profil...</p>
+        </div>
+      </UserSidebar>
+    );
+  }
+
+  const initial = profile?.nama ? profile.nama.charAt(0).toUpperCase() : "U";
 
   return (
     <UserSidebar>
@@ -19,12 +60,12 @@ export default function UserProfile() {
 
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm flex flex-col items-center text-center mb-6">
         <div className="w-20 h-20 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold text-heading-lg mb-4">
-          RA
+          {initial}
         </div>
-        <h2 className="text-lg font-bold text-neutral-900">Rusdi Atmosfir</h2>
-        <p className="text-sm font-sans text-neutral-500 mt-1">69-222-896</p>
+        <h2 className="text-lg font-bold text-neutral-900">{profile?.nama || "User"}</h2>
+        <p className="text-sm font-sans text-neutral-500 mt-1">{profile?.account_number || "-"}</p>
         <div className="mt-4 px-3 py-1 bg-success/10 text-success rounded-full text-xs font-medium">
-          Status: Active (Verified)
+          Status: {profile?.status_user === "active" ? "Active" : "Inactive"} ({profile?.status_kyc === "verified" ? "Verified" : "Unverified"})
         </div>
       </div>
 
@@ -37,28 +78,28 @@ export default function UserProfile() {
             <User className="w-5 h-5 text-neutral-400" />
             <div>
               <p className="text-xs text-neutral-500">Username</p>
-              <p className="text-sm font-medium text-neutral-900">rusdi_atmosfir</p>
+              <p className="text-sm font-medium text-neutral-900">{profile?.username || "-"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Mail className="w-5 h-5 text-neutral-400" />
             <div>
               <p className="text-xs text-neutral-500">Email</p>
-              <p className="text-sm font-medium text-neutral-900">rusdi@gmail.com</p>
+              <p className="text-sm font-medium text-neutral-900">{profile?.email || "-"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Phone className="w-5 h-5 text-neutral-400" />
             <div>
               <p className="text-xs text-neutral-500">No. Telepon</p>
-              <p className="text-sm font-medium text-neutral-900">081234567890</p>
+              <p className="text-sm font-medium text-neutral-900">{profile?.no_telepon || "-"}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <MapPin className="w-5 h-5 text-neutral-400" />
             <div>
               <p className="text-xs text-neutral-500">Tempat Lahir</p>
-              <p className="text-sm font-medium text-neutral-900">Jemka</p>
+              <p className="text-sm font-medium text-neutral-900">{profile?.tempat_lahir || "-"}</p>
             </div>
           </div>
         </div>
