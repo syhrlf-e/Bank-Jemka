@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fetchApi } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
 export default function Register() {
   const [step, setStep] = useState(1);
@@ -25,6 +26,7 @@ export default function Register() {
     tanggal_lahir: "",
     email: "",
     no_telepon: "",
+    balance: "",
     username: "",
     password: "",
     confirmPassword: "",
@@ -42,6 +44,7 @@ export default function Register() {
     if (!formData.email) newErrors.email = "Email wajib diisi";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Format email tidak valid";
     if (!formData.no_telepon) newErrors.no_telepon = "No. Telepon wajib diisi";
+    if (!formData.balance) newErrors.balance = "Saldo awal wajib dipilih";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,11 +77,12 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const { confirmPassword, ...payload } = formData;
+      const { confirmPassword, balance, ...payload } = formData;
+      const finalPayload = { ...payload, balance: parseInt(balance) || 0 };
 
       const { response, data } = await fetchApi("/api/auth/register", {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(finalPayload),
       });
 
       if (response.ok && data.success) {
@@ -227,6 +231,27 @@ export default function Register() {
                 className={errors.no_telepon ? "border-danger" : ""}
               />
               {errors.no_telepon && <p className="text-body-sm text-danger">{errors.no_telepon}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="balance">Saldo Awal</Label>
+              <select
+                id="balance"
+                value={formData.balance}
+                onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+                className={cn(
+                  "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                  errors.balance ? "border-danger" : ""
+                )}
+              >
+                <option value="" disabled>Pilih nominal saldo awal</option>
+                <option value="500000">Rp 500.000</option>
+                <option value="1000000">Rp 1.000.000</option>
+                <option value="2000000">Rp 2.000.000</option>
+                <option value="5000000">Rp 5.000.000</option>
+                <option value="10000000">Rp 10.000.000</option>
+              </select>
+              {errors.balance && <p className="text-body-sm text-danger">{errors.balance}</p>}
             </div>
 
             <Button type="button" onClick={handleNext} className="w-full mt-6 bg-primary text-primary-foreground hover:bg-primary/90">
