@@ -103,7 +103,7 @@ export default function Users() {
       if (isEditing) {
         // Asumsi endpoint update profile berdasarkan ID nasabah
         // GANTI INI JIKA ENDPOINT-NYA BERBEDA
-        endpoint = `/api/profile/${selectedUser.id}`; 
+        endpoint = `/api/profile/${selectedUser.id_account}`; 
         method = "PUT";
         // Hapus password jika kosong saat edit
         if (!payload.password) delete payload.password;
@@ -134,7 +134,7 @@ export default function Users() {
     try {
       // Asumsi endpoint delete profile berdasarkan ID nasabah
       // GANTI INI JIKA ENDPOINT-NYA BERBEDA
-      const { response, data } = await fetchApi(`/api/profile/${selectedUser.id}`, {
+      const { response, data } = await fetchApi(`/api/profile/${selectedUser.id_account}`, {
         method: "DELETE",
       });
 
@@ -207,7 +207,7 @@ export default function Users() {
               </TableRow>
             ) : (
               filteredUsers.map((user, idx) => (
-                <TableRow key={user.id || idx}>
+                <TableRow key={user.id_account || idx}>
                   <TableCell>{idx + 1}</TableCell>
                   <TableCell className="font-medium text-neutral-900">{user.nama}</TableCell>
                   <TableCell className="font-sans text-neutral-600">{user.nik}</TableCell>
