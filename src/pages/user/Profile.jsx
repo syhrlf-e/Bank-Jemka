@@ -2,13 +2,26 @@ import { useNavigate } from "react-router-dom";
 import { User, Mail, Phone, MapPin, LogOut } from "lucide-react";
 import UserSidebar from "@/components/layout/UserSidebar";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export default function UserProfile() {
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const [userData, setUserData] = useState({});
 
-  const handleLogout = () => {
-    navigate("/login");
+  const handleLogout = async () => {
+    const request = await fetch(`${apiUrl}/api/auth/logout`, { method: "POST" });
+    const response = await request.json();
+    if (response.status) {
+      navigate("/login");
+    }
   };
+
+  const loadUserData = async () => {
+    const request = await fetch(`${apiUrl}/api/profile`, { method: "POST" });
+    const response = await request.json();
+    if (response.success);
+  }
 
   return (
     <UserSidebar>

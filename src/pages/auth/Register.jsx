@@ -15,14 +15,15 @@ export default function Register() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [generatedAccount, setGeneratedAccount] = useState("");
   const navigate = useNavigate();
+  const api_url = import.meta.env.VITE_API_URL;
 
   const [formData, setFormData] = useState({
-    fullName: "",
+    nama: "",
     nik: "",
-    birthPlace: "",
-    birthDate: "",
+    tempat_lahir: "",
+    tanggal_lahir: "",
     email: "",
-    phone: "",
+    no_telepon: "",
     username: "",
     password: "",
     confirmPassword: "",
@@ -32,14 +33,14 @@ export default function Register() {
 
   const validateStep1 = () => {
     const newErrors = {};
-    if (!formData.fullName) newErrors.fullName = "Nama wajib diisi";
+    if (!formData.nama) newErrors.nama = "Nama wajib diisi";
     if (!formData.nik) newErrors.nik = "NIK wajib diisi";
     else if (!/^\d{16}$/.test(formData.nik)) newErrors.nik = "NIK harus 16 digit angka";
-    if (!formData.birthPlace) newErrors.birthPlace = "Tempat lahir wajib diisi";
-    if (!formData.birthDate) newErrors.birthDate = "Tanggal lahir wajib diisi";
+    if (!formData.tempat_lahir) newErrors.tempat_lahir = "Tempat lahir wajib diisi";
+    if (!formData.tanggal_lahir) newErrors.tanggal_lahir = "Tanggal lahir wajib diisi";
     if (!formData.email) newErrors.email = "Email wajib diisi";
     else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Format email tidak valid";
-    if (!formData.phone) newErrors.phone = "No. Telepon wajib diisi";
+    if (!formData.no_telepon) newErrors.no_telepon = "No. Telepon wajib diisi";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -66,19 +67,32 @@ export default function Register() {
     if (validateStep1()) setStep(2);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep2()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    const request = await fetch(`${api_url}/api/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const response = await request.json();
+    if (response.success) {
       setIsLoading(false);
       setIsSuccess(true);
-      const rand1 = Math.floor(Math.random() * 900) + 100;
-      const rand2 = Math.floor(Math.random() * 900) + 100;
-      setGeneratedAccount(`69-${rand1}-${rand2}`);
+
+      const account_number = response.data.account_number.match(/.{1,5}/g);
+      setGeneratedAccount(`${account_number[0]}-${account_number[1]}`);
       toast.success("Rekening berhasil dibuat!");
-    }, 1500);
+    } else {
+      setIsLoading(false);
+      toast.error(`Registrasi gagal, ${response.message}`);
+    }
   };
 
   if (isSuccess) {
@@ -124,17 +138,17 @@ export default function Register() {
         {step === 1 ? (
           <>
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nama Lengkap</Label>
+              <Label htmlFor="nama">Nama Lengkap</Label>
               <Input
-                id="fullName"
-                value={formData.fullName}
+                id="nama"
+                value={formData.nama}
                 onChange={(e) => {
                   const value = e.target.value.replace(/[^a-zA-Z\s']/g, "");
-                  setFormData({ ...formData, fullName: value });
+                  setFormData({ ...formData, nama: value });
                 }}
-                className={errors.fullName ? "border-danger" : ""}
+                className={errors.nama ? "border-danger" : ""}
               />
-              {errors.fullName && <p className="text-body-sm text-danger">{errors.fullName}</p>}
+              {errors.nama && <p className="text-body-sm text-danger">{errors.nama}</p>}
             </div>
 
             <div className="space-y-2">
@@ -154,28 +168,28 @@ export default function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="birthPlace">Tempat Lahir</Label>
+                <Label htmlFor="tempat_lahir">Tempat Lahir</Label>
                 <Input
-                  id="birthPlace"
-                  value={formData.birthPlace}
+                  id="tempat_lahir"
+                  value={formData.tempat_lahir}
                   onChange={(e) => {
                     const value = e.target.value.replace(/[^a-zA-Z\s]/g, "");
-                    setFormData({ ...formData, birthPlace: value });
+                    setFormData({ ...formData, tempat_lahir: value });
                   }}
-                  className={errors.birthPlace ? "border-danger" : ""}
+                  className={errors.tempat_lahir ? "border-danger" : ""}
                 />
-                {errors.birthPlace && <p className="text-body-sm text-danger">{errors.birthPlace}</p>}
+                {errors.tempat_lahir && <p className="text-body-sm text-danger">{errors.tempat_lahir}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="birthDate">Tanggal Lahir</Label>
+                <Label htmlFor="tanggal_lahir">Tanggal Lahir</Label>
                 <Input
-                  id="birthDate"
+                  id="tanggal_lahir"
                   type="date"
-                  value={formData.birthDate}
-                  onChange={(e) => setFormData({ ...formData, birthDate: e.target.value })}
-                  className={errors.birthDate ? "border-danger" : ""}
+                  value={formData.tanggal_lahir}
+                  onChange={(e) => setFormData({ ...formData, tanggal_lahir: e.target.value })}
+                  className={errors.tanggal_lahir ? "border-danger" : ""}
                 />
-                {errors.birthDate && <p className="text-body-sm text-danger">{errors.birthDate}</p>}
+                {errors.tanggal_lahir && <p className="text-body-sm text-danger">{errors.tanggal_lahir}</p>}
               </div>
             </div>
 
@@ -201,18 +215,18 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">No. Telepon</Label>
+              <Label htmlFor="no_telepon">No. Telepon</Label>
               <Input
-                id="phone"
+                id="no_telepon"
                 type="tel"
-                value={formData.phone}
+                value={formData.no_telepon}
                 onChange={(e) => {
                   const value = e.target.value.replace(/\D/g, "").slice(0, 13);
-                  setFormData({ ...formData, phone: value });
+                  setFormData({ ...formData, no_telepon: value });
                 }}
-                className={errors.phone ? "border-danger" : ""}
+                className={errors.no_telepon ? "border-danger" : ""}
               />
-              {errors.phone && <p className="text-body-sm text-danger">{errors.phone}</p>}
+              {errors.no_telepon && <p className="text-body-sm text-danger">{errors.no_telepon}</p>}
             </div>
 
             <Button type="button" onClick={handleNext} className="w-full mt-6">

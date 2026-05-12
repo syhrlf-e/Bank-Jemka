@@ -5,6 +5,7 @@ import AuthLayout from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 export default function UserLogin() {
   const [showPassword, setShowPassword] = useState(false);
@@ -12,6 +13,7 @@ export default function UserLogin() {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const apiUrl = import.meta.env.VITE_API_URL;
 
   const validate = () => {
     const newErrors = {};
@@ -25,16 +27,29 @@ export default function UserLogin() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+
+    const request = await fetch(`${apiUrl}/api/auth/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(formData)
+    });
+
+    const response = await request.json();
+    if (response.success) {
       setIsLoading(false);
       navigate("/dashboard");
-    }, 1000);
-  };
+		} else {
+			setIsLoading(false);
+			toast.error(`Login gagal, ${response.message}`);
+    }
+
+	};
 
   return (
     <AuthLayout>
