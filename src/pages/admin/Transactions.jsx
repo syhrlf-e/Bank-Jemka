@@ -27,7 +27,7 @@ export default function Transactions() {
     try {
       const { response, data } = await fetchApi("/api/transaction/all");
       if (response.ok && data) {
-         setTransactions(Array.isArray(data) ? data : []);
+         setTransactions(Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []));
       } else {
         toast.error("Gagal mengambil data transaksi");
       }
