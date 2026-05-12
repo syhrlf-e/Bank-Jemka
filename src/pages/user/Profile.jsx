@@ -10,8 +10,6 @@ export default function UserProfile() {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const [userData, setUserData] = useState({});
 
   useEffect(() => {
     const loadProfile = async () => {

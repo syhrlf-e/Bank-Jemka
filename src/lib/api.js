@@ -4,7 +4,7 @@ export const fetchApi = async (endpoint, options = {}) => {
   const defaultOptions = {
     headers: {
       "Content-Type": "application/json",
-      "ngrok-skip-browser-warning": "true",
+      // "ngrok-skip-browser-warning": "true",
     },
     credentials: "include",
   };

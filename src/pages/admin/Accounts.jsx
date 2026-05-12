@@ -19,6 +19,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { fetchApi } from "@/lib/api";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const DUMMY_ACCOUNTS = [
   { id: 1, account_number: "69-222-896", name: "Rusdi Atmosfir", type: "Tabungan", balance: 5000000, status: "active" },
@@ -31,14 +35,42 @@ export default function Accounts() {
   const [filter, setFilter] = useState("all");
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
-
+  const [accounts, setAccounts] = useState([]);
+  const navigate = useNavigate();
   const handleToggleStatus = (acc) => {
     setSelectedAccount(acc);
     setShowStatusModal(true);
-  };
+  }
 
-  const filteredAccounts = DUMMY_ACCOUNTS.filter((acc) => {
-    const matchesSearch = acc.name.toLowerCase().includes(search.toLowerCase()) || acc.account_number.includes(search);
+  const loadAccounts = async () => {
+    const { data } = await fetchApi("/api/account/all");
+    console.log(data)
+    if (data.success) {
+      setAccounts(data.data);
+    } else {
+      navigate("/login");
+    }
+  }
+  useEffect(() => {
+
+    loadAccounts();
+  }, [])
+
+  async function handleUpdate(account) {
+    const status = account.status == "active" ? "inactive" : "active";
+    const { data } = await fetchApi("/api/account/status", {
+      method: "POST",
+      body: JSON.stringify({ id: account.id, status })
+    })
+    if (data.success) {
+      loadAccounts();
+    } else {
+      toast.error(data.message);
+    }
+  }
+
+  const filteredAccounts = accounts.filter((acc) => {
+    const matchesSearch = acc.nama.toLowerCase().includes(search.toLowerCase()) || acc.account_number.includes(search);
     const matchesFilter = filter === "all" || acc.status === filter;
     return matchesSearch && matchesFilter;
   });
@@ -71,8 +103,8 @@ export default function Accounts() {
           <TableHeader>
             <TableRow>
               <TableHead>No</TableHead>
-              <TableHead>Nomor Rekening</TableHead>
               <TableHead>Nama Pemilik</TableHead>
+              <TableHead>Nomor Rekening</TableHead>
               <TableHead>Tipe</TableHead>
               <TableHead className="text-right">Saldo</TableHead>
               <TableHead>Status</TableHead>
@@ -83,9 +115,9 @@ export default function Accounts() {
             {filteredAccounts.map((acc, idx) => (
               <TableRow key={acc.id}>
                 <TableCell>{idx + 1}</TableCell>
+                <TableCell>{acc.nama}</TableCell>
                 <TableCell className="font-sans text-neutral-900 font-medium">{acc.account_number}</TableCell>
-                <TableCell>{acc.name}</TableCell>
-                <TableCell>{acc.type}</TableCell>
+                <TableCell>Tabungan</TableCell>
                 <TableCell className="text-right font-sans text-neutral-600">
                   Rp {acc.balance.toLocaleString("id-ID")}
                 </TableCell>
@@ -125,7 +157,10 @@ export default function Accounts() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowStatusModal(false)}>Batal</Button>
-            <Button onClick={() => setShowStatusModal(false)}>Ya, Lanjutkan</Button>
+            <Button onClick={() => {
+              setShowStatusModal(false)
+              handleUpdate(selectedAccount);
+            }}>Ya, Lanjutkan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
