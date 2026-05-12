@@ -28,7 +28,7 @@ export default function Transfers() {
     try {
       const { response, data } = await fetchApi("/api/transfer/all");
       if (response.ok && data) {
-        setTransfers(Array.isArray(data) ? data : []);
+        setTransfers(Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []));
       } else {
         toast.error("Gagal mengambil data transfer");
       }
@@ -40,10 +40,10 @@ export default function Transfers() {
   };
 
   const filteredTransfers = transfers.filter((tf) =>
-    (tf.from_name || tf.source_name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (tf.from_acc || tf.source_account_number || "").includes(search) ||
-    (tf.to_name || tf.destination_name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (tf.to_acc || tf.destination_account_number || "").includes(search)
+    (tf.from_name || tf.source_name || tf.sender_name || tf.pengirim_nama || "").toLowerCase().includes(search.toLowerCase()) ||
+    (tf.from_acc || tf.source_account_number || tf.source_account || tf.sender_account || tf.rekening_sumber || "").includes(search) ||
+    (tf.to_name || tf.destination_name || tf.receiver_name || tf.penerima_nama || "").toLowerCase().includes(search.toLowerCase()) ||
+    (tf.to_acc || tf.destination_account_number || tf.destination_account || tf.receiver_account || tf.rekening_tujuan || "").includes(search)
   );
 
   return (
@@ -93,12 +93,12 @@ export default function Transfers() {
                 <TableRow key={tf.id || idx}>
                   <TableCell>{idx + 1}</TableCell>
                   <TableCell>
-                    <p className="font-medium text-neutral-900">{tf.from_name || tf.source_name || "-"}</p>
-                    <p className="text-xs font-sans text-neutral-500">{tf.from_acc || tf.source_account_number || "-"}</p>
+                    <p className="font-medium text-neutral-900">{tf.from_name || tf.source_name || tf.sender_name || tf.pengirim_nama || "-"}</p>
+                    <p className="text-xs font-sans text-neutral-500">{tf.from_acc || tf.source_account_number || tf.source_account || tf.sender_account || tf.rekening_sumber || "-"}</p>
                   </TableCell>
                   <TableCell>
-                    <p className="font-medium text-neutral-900">{tf.to_name || tf.destination_name || "-"}</p>
-                    <p className="text-xs font-sans text-neutral-500">{tf.to_acc || tf.destination_account_number || "-"}</p>
+                    <p className="font-medium text-neutral-900">{tf.to_name || tf.destination_name || tf.receiver_name || tf.penerima_nama || "-"}</p>
+                    <p className="text-xs font-sans text-neutral-500">{tf.to_acc || tf.destination_account_number || tf.destination_account || tf.receiver_account || tf.rekening_tujuan || "-"}</p>
                   </TableCell>
                   <TableCell className="text-right font-sans text-neutral-600">
                     Rp {Number(tf.amount || 0).toLocaleString("id-ID")}
