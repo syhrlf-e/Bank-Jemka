@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Project files to ignore
+PRD_Bank_Jemka.md
