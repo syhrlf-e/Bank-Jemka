@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 import AuthLayout from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { fetchApi } from "@/lib/api";
 
 export default function UserLogin() {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,24 +18,34 @@ export default function UserLogin() {
   const validate = () => {
     const newErrors = {};
     if (!formData.username) newErrors.username = "Username wajib diisi";
-    else if (formData.username.length < 3) newErrors.username = "Minimal 3 karakter";
-
     if (!formData.password) newErrors.password = "Password wajib diisi";
-    else if (formData.password.length < 6) newErrors.password = "Minimal 6 karakter";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { response, data } = await fetchApi("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok && data.success) {
+        toast.success(data.message || "Login berhasil!");
+        navigate("/dashboard");
+      } else {
+        toast.error(data.message || "Login gagal, username atau password salah.");
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan jaringan, silakan coba lagi.");
+    } finally {
       setIsLoading(false);
-      navigate("/dashboard");
-    }, 1000);
+    }
   };
 
   return (

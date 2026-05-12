@@ -6,6 +6,7 @@ import AuthLayout from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { fetchApi } from "@/lib/api";
 
 export default function Register() {
   const [step, setStep] = useState(1);
@@ -215,8 +216,8 @@ export default function Register() {
               {errors.phone && <p className="text-body-sm text-danger">{errors.phone}</p>}
             </div>
 
-            <Button type="button" onClick={handleNext} className="w-full mt-6">
-              Lanjutkan &rarr;
+            <Button type="button" onClick={handleNext} className="w-full mt-6 bg-primary text-primary-foreground hover:bg-primary/90">
+              Lanjutkan
             </Button>
           </>
         ) : (
