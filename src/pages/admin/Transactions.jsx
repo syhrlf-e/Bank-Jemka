@@ -39,7 +39,10 @@ export default function Transactions() {
   };
 
   const filteredTransactions = transactions.filter((tx) => {
-    return filter === "all" || tx.transaction_type === filter;
+    if (filter === "all") return true;
+    if (filter === "in") return tx.transaction_type === "in" || tx.transaction_type === "credit";
+    if (filter === "out") return tx.transaction_type === "out" || tx.transaction_type === "debit";
+    return true;
   });
 
   return (
@@ -88,8 +91,8 @@ export default function Transactions() {
                   <TableCell className="font-medium text-neutral-900">{tx.name || tx.nama || "-"}</TableCell>
                   <TableCell className="font-sans text-neutral-600">{tx.account_number || tx.acc || "-"}</TableCell>
                   <TableCell>
-                    <span className={cn("px-2 py-1 rounded-full text-xs font-medium", tx.transaction_type === "in" ? "bg-success/10 text-success" : "bg-danger/10 text-danger")}>
-                      {tx.transaction_type === "in" ? "Masuk" : "Keluar"}
+                    <span className={cn("px-2 py-1 rounded-full text-xs font-medium", (tx.transaction_type === "in" || tx.transaction_type === "credit") ? "bg-success/10 text-success" : "bg-danger/10 text-danger")}>
+                      {(tx.transaction_type === "in" || tx.transaction_type === "credit") ? "Masuk" : "Keluar"}
                     </span>
                   </TableCell>
                   <TableCell className="text-right font-sans text-neutral-900">

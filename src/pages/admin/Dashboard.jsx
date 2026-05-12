@@ -45,11 +45,8 @@ export default function AdminDashboard() {
         const activeUsers = usersData.filter(u => u.status_user === "active" || u.status === "active").length;
 
         let calculatedTotalBalance = 0;
-        // Opsional: Jika kita tahu transaksi masuk adalah deposit dan tidak ada API saldo global:
         transactionsData.forEach(tx => {
-           if (tx.transaction_type === "in") calculatedTotalBalance += Number(tx.amount || 0);
-           // Jika kita asumsikan semua 'in' adalah penambahan saldo agregat, atau jika API menyediakan field tertentu.
-           // Karena tidak ada, kita akan membiarkan calculatedTotalBalance dari perhitungan ini atau 0.
+           if (tx.transaction_type === "in" || tx.transaction_type === "credit") calculatedTotalBalance += Number(tx.amount || 0);
         });
 
         setStats({
