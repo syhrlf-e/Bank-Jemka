@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { fetchApi } from "@/lib/api";
 
 export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,15 +22,28 @@ export default function AdminLogin() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      const { response, data } = await fetchApi("/api/auth/admin/login", {
+        method: "POST",
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok && data.success) {
+        toast.success(data.message || "Login admin berhasil!");
+        navigate("/admin/dashboard");
+      } else {
+        toast.error(data.message || "Login gagal. Username atau password salah.");
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan jaringan, silakan coba lagi.");
+    } finally {
       setIsLoading(false);
-      navigate("/admin/dashboard");
-    }, 1000);
+    }
   };
 
   return (

@@ -87,7 +87,7 @@ export default function Transfer() {
 
       setIsCheckingDest(true);
       try {
-        const { response, data } = await fetchApi(`/api/account?account_number=${formData.destination}`);
+        const { response, data } = await fetchApi(`/api/account/search?account_number=${formData.destination}`);
         
         if (response.ok && data.data) {
           setDestinationInfo(data.data); 
@@ -155,7 +155,7 @@ export default function Transfer() {
         body: JSON.stringify(payload),
       });
 
-      if (response.ok && data.status) {
+      if (response.ok && data.success) {
         setShowConfirm(false);
         setIsSuccess(true);
         toast.success("Transfer berhasil!");
@@ -188,10 +188,7 @@ export default function Transfer() {
       <UserSidebar>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center max-w-md mx-auto">
           <CheckCircle2 className="w-24 h-24 text-success mb-6" />
-          <h2 className="text-heading-xl font-bold text-neutral-900 mb-2">Transfer Berhasil!</h2>
-          <p className="text-body-md text-neutral-600 mb-8">
-            Dana sebesar <span className="font-bold text-neutral-900">Rp {formattedAmount}</span> telah berhasil dikirim ke <span className="font-bold text-neutral-900">{destinationInfo?.nama || formData.destination}</span>.
-          </p>
+          <h2 className="text-heading-xl font-bold text-neutral-900 mb-8">Transfer Berhasil!</h2>
           <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 w-full mb-8 text-left space-y-3">
             <div className="flex justify-between">
               <span className="text-neutral-500">Penerima</span>
@@ -305,8 +302,9 @@ export default function Transfer() {
               <Label className="text-sm">Rekening Tujuan</Label>
               <Input
                 type="text"
+                maxLength={10}
                 value={formData.destination}
-                onChange={(e) => setFormData({ ...formData, destination: e.target.value.replace(/\D/g, "") })}
+                onChange={(e) => setFormData({ ...formData, destination: e.target.value.replace(/\D/g, "").slice(0, 10) })}
                 placeholder="Masukkan nomor rekening tujuan"
                 className={errors.destination ? "border-danger rounded-xl h-12" : "rounded-xl h-12"}
               />

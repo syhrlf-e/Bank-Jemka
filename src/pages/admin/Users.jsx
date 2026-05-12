@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminSidebar from "@/components/layout/AdminSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { fetchApi } from "@/lib/api";
 import {
   Table,
   TableBody,
@@ -21,18 +23,35 @@ import {
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const DUMMY_USERS = [
-  { id: 1, name: "Rusdi Atmosfir", nik: "3201010101010001", email: "rusdi@gmail.com", phone: "081234567890", kyc: "verified", status: "active" },
-  { id: 2, name: "Rehan Tohapok", nik: "3201010101010002", email: "rehan@gmail.com", phone: "081234567891", kyc: "verified", status: "active" },
-  { id: 3, name: "Ujang Wonogiri", nik: "3201010101010003", email: "ujang@gmail.com", phone: "081234567892", kyc: "verified", status: "active" },
-];
-
 export default function Users() {
+  const [users, setUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    setIsLoading(true);
+    try {
+      const { response, data } = await fetchApi("/api/profile/all");
+      if (response.ok && data.status !== false) {
+        // If data.data exists, use it, otherwise use data directly if it's an array
+        setUsers(Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []));
+      } else {
+        toast.error("Gagal mengambil data nasabah");
+      }
+    } catch (error) {
+      toast.error("Terjadi kesalahan jaringan");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleOpenAdd = () => {
     setIsEditing(false);
@@ -51,10 +70,10 @@ export default function Users() {
     setShowDeleteModal(true);
   };
 
-  const filteredUsers = DUMMY_USERS.filter((user) =>
-    user.name.toLowerCase().includes(search.toLowerCase()) ||
-    user.nik.includes(search) ||
-    user.email.toLowerCase().includes(search.toLowerCase())
+  const filteredUsers = users.filter((user) =>
+    (user.nama || "").toLowerCase().includes(search.toLowerCase()) ||
+    (user.nik || "").includes(search) ||
+    (user.email || "").toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -92,43 +111,50 @@ export default function Users() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.map((user, idx) => (
-              <TableRow key={user.id}>
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell className="font-medium text-neutral-900">{user.name}</TableCell>
-                <TableCell className="font-sans text-neutral-600">{user.nik}</TableCell>
-                <TableCell>
-                  <p className="text-sm text-neutral-900">{user.email}</p>
-                  <p className="text-xs text-neutral-500">{user.phone}</p>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", user.kyc === "verified" ? "bg-primary-50 text-primary-600" : "bg-warning/10 text-warning")}>
-                      {user.kyc === "verified" ? "Verified" : "Pending"}
-                    </span>
-                    <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", user.status === "active" ? "bg-success/10 text-success" : "bg-danger/10 text-danger")}>
-                      {user.status === "active" ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(user)}>
-                      <Pencil className="w-4 h-4 text-neutral-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(user)}>
-                      <Trash2 className="w-4 h-4 text-danger" />
-                    </Button>
-                  </div>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center text-neutral-500">
+                  Memuat data...
                 </TableCell>
               </TableRow>
-            ))}
-            {filteredUsers.length === 0 && (
+            ) : filteredUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-neutral-500">
                   Data nasabah tidak ditemukan.
                 </TableCell>
               </TableRow>
+            ) : (
+              filteredUsers.map((user, idx) => (
+                <TableRow key={user.id || idx}>
+                  <TableCell>{idx + 1}</TableCell>
+                  <TableCell className="font-medium text-neutral-900">{user.nama}</TableCell>
+                  <TableCell className="font-sans text-neutral-600">{user.nik}</TableCell>
+                  <TableCell>
+                    <p className="text-sm text-neutral-900">{user.email}</p>
+                    <p className="text-xs text-neutral-500">{user.no_telepon}</p>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", user.status_kyc === "verified" ? "bg-primary-50 text-primary-600" : "bg-warning/10 text-warning")}>
+                        {user.status_kyc === "verified" ? "Verified" : "Pending"}
+                      </span>
+                      <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", user.status_user === "active" ? "bg-success/10 text-success" : "bg-danger/10 text-danger")}>
+                        {user.status_user === "active" ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenEdit(user)}>
+                        <Pencil className="w-4 h-4 text-neutral-500" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleOpenDelete(user)}>
+                        <Trash2 className="w-4 h-4 text-danger" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
             )}
           </TableBody>
         </Table>
@@ -143,7 +169,7 @@ export default function Users() {
             <div className="space-y-2">
               <Label>Nama Lengkap</Label>
               <Input
-                defaultValue={selectedUser?.name || ""}
+                defaultValue={selectedUser?.nama || ""}
                 onChange={(e) => {
                   e.target.value = e.target.value.replace(/[^a-zA-Z\s']/g, "");
                 }}
@@ -164,7 +190,7 @@ export default function Users() {
               <div className="relative flex items-center">
                 <Input
                   type="text"
-                  defaultValue={selectedUser ? selectedUser.email.replace("@gmail.com", "") : ""}
+                  defaultValue={selectedUser ? (selectedUser.email || "").replace("@gmail.com", "") : ""}
                   onChange={(e) => {
                     e.target.value = e.target.value.replace(/[^a-zA-Z0-9._-]/g, "");
                   }}
@@ -180,7 +206,7 @@ export default function Users() {
               <Label>No. Telepon</Label>
               <Input
                 type="tel"
-                defaultValue={selectedUser?.phone || ""}
+                defaultValue={selectedUser?.no_telepon || ""}
                 onChange={(e) => {
                   e.target.value = e.target.value.replace(/\D/g, "").slice(0, 13);
                 }}
@@ -213,7 +239,7 @@ export default function Users() {
           </DialogHeader>
           <div className="py-4">
             <p className="text-body-md text-neutral-600">
-              Apakah Anda yakin ingin menghapus nasabah <strong>{selectedUser?.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus nasabah <strong>{selectedUser?.nama}</strong>? Tindakan ini tidak dapat dibatalkan.
             </p>
           </div>
           <DialogFooter>
