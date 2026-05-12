@@ -74,16 +74,7 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const payload = {
-        nama: formData.fullName,
-        nik: formData.nik,
-        tempat_lahir: formData.birthPlace,
-        tanggal_lahir: formData.birthDate,
-        email: formData.email,
-        no_telepon: formData.phone,
-        username: formData.username,
-        password: formData.password,
-      };
+      const { confirmPassword, ...payload } = formData;
 
       const { response, data } = await fetchApi("/api/auth/register", {
         method: "POST",
@@ -92,7 +83,6 @@ export default function Register() {
 
       if (response.ok && data.success) {
         setIsSuccess(true);
-        // If the backend returns an account number, use it, otherwise generate one for display
         setGeneratedAccount(data.data?.account_number || data.account_number || `69-${Math.floor(Math.random() * 900) + 100}-${Math.floor(Math.random() * 900) + 100}`);
         toast.success("Rekening berhasil dibuat!");
       } else {
